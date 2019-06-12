@@ -13,32 +13,26 @@ import org.jooby.json.Gzon
 class JoobyCamundaApplication : Kooby({
     use(Gzon())
 
-    val processEngine = BpmPlatform.getDefaultProcessEngine()
-    val processApplicationService = BpmPlatform.getProcessApplicationService()
-    val taskService = processEngine.taskService
-    val runtimeService = processEngine.runtimeService
+    onStart {
+        RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(
+                ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
+                        .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
+                        .setJdbcUrl("jdbc:h2:mem:my-own-db;DB_CLOSE_DELAY=1000")
+                        .setJobExecutorActivate(true)
+                        .buildProcessEngine()
+        )
+        ExampleProcessApplication().deploy();
+    }
 
     get {
-        runtimeService.startProcessInstanceByKey("Process_13nmxyw");
-        "Process Engine: ${processEngine.name}"
+        BpmPlatform.getDefaultProcessEngine().runtimeService.startProcessInstanceByKey("Process_13nmxyw");
+        "Process Engine: ${BpmPlatform.getDefaultProcessEngine().name}"
     }
 
-    get("/process-application") {
-        "Hello ${processApplicationService.getProcessApplicationInfo("example-process-application").deploymentInfo.get(0).deploymentId}!"
-    }
-
-    get("/task") { taskService.createTaskQuery().list() }
+    get("/task") { BpmPlatform.getDefaultProcessEngine().taskService.createTaskQuery().list() }
 })
 
 fun main(args: Array<String>) {
-    RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(
-            ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
-                    .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
-                    .setJdbcUrl("jdbc:h2:mem:my-own-db;DB_CLOSE_DELAY=1000")
-                    .setJobExecutorActivate(true)
-                    .buildProcessEngine()
-    )
-    ExampleProcessApplication().deploy();
     run(::JoobyCamundaApplication, args)
 }
 
