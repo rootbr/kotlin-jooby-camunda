@@ -22,8 +22,6 @@ class JoobyCamundaApplication : Kooby({
     }
 
     get("/task") { taskService.createTaskQuery().list() }
-
-
 })
 
 fun main(args: Array<String>) {
