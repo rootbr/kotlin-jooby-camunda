@@ -10,40 +10,31 @@ import org.jooby.Kooby
 
 
 class JoobyCamundaApplication : Kooby({
-    get {
-        val engineService = BpmPlatform.getProcessEngineService()
+    val processEngine = BpmPlatform.getDefaultProcessEngine()
+    val processApplicationService = BpmPlatform.getProcessApplicationService()
+    val taskService = processEngine.taskService
+    val runtimeService = processEngine.runtimeService
 
-        "Hello ${engineService.defaultProcessEngine.name}!"
-    }
+    get { "Process Engine: ${processEngine.name}" }
 
     get("/process-application") {
-        val applicationService = BpmPlatform.getProcessApplicationService()
-        "Hello ${applicationService.getProcessApplicationInfo("example-process-application").deploymentInfo.get(0).deploymentId}!" }
+        "Hello ${processApplicationService.getProcessApplicationInfo("example-process-application").deploymentInfo.get(0).deploymentId}!"
+    }
 
-
-    get("/task") {
-        val taskService = BpmPlatform.getDefaultProcessEngine().taskService
-        taskService.createTaskQuery().list() }
+    get("/task") { taskService.createTaskQuery().list() }
 
 
 })
 
 fun main(args: Array<String>) {
-    Thread {
-        RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(
-                ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
-                .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
-                .setJdbcUrl("jdbc:h2:mem:my-own-db;DB_CLOSE_DELAY=1000")
-                .setJobExecutorActivate(true)
-                .buildProcessEngine()
-        )
-
-        ExampleProcessApplication().deploy();
-
-        BpmPlatform.getDefaultProcessEngine().runtimeService.startProcessInstanceByKey("Process_13nmxyw");
-
-    }.start()
-
+    RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(
+            ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
+                    .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
+                    .setJdbcUrl("jdbc:h2:mem:my-own-db;DB_CLOSE_DELAY=1000")
+                    .setJobExecutorActivate(true)
+                    .buildProcessEngine()
+    )
+    ExampleProcessApplication().deploy();
     run(::JoobyCamundaApplication, args)
 }
 
