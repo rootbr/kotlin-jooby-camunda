@@ -7,15 +7,21 @@ import org.camunda.bpm.container.RuntimeContainerDelegate
 import org.camunda.bpm.engine.ProcessEngineConfiguration
 import org.jooby.Jooby.run
 import org.jooby.Kooby
+import org.jooby.json.Gzon
 
 
 class JoobyCamundaApplication : Kooby({
+    use(Gzon())
+
     val processEngine = BpmPlatform.getDefaultProcessEngine()
     val processApplicationService = BpmPlatform.getProcessApplicationService()
     val taskService = processEngine.taskService
     val runtimeService = processEngine.runtimeService
 
-    get { "Process Engine: ${processEngine.name}" }
+    get {
+        runtimeService.startProcessInstanceByKey("Process_13nmxyw");
+        "Process Engine: ${processEngine.name}"
+    }
 
     get("/process-application") {
         "Hello ${processApplicationService.getProcessApplicationInfo("example-process-application").deploymentInfo.get(0).deploymentId}!"

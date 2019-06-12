@@ -56,6 +56,8 @@ dependencies {
     compile "org.camunda.bpm:camunda-engine:$camundaVersion"
     compile "com.h2database:h2:1.4.199"
 
+    compile 'org.jooby:jooby-gson:1.6.2'
+
 
     testCompile "org.jetbrains.spek:spek-api:$spekVersion"
     testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$spekVersion"
