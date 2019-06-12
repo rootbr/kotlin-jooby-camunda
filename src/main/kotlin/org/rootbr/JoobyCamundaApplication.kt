@@ -16,31 +16,31 @@ class JoobyCamundaApplication : Kooby({
         "Hello ${engineService.defaultProcessEngine.name}!"
     }
 
-
-
     get("/process-application") {
         val applicationService = BpmPlatform.getProcessApplicationService()
         "Hello ${applicationService.getProcessApplicationInfo("example-process-application").deploymentInfo.get(0).deploymentId}!" }
+
+
+    get("/task") {
+        val taskService = BpmPlatform.getDefaultProcessEngine().taskService
+        taskService.createTaskQuery().list() }
 
 
 })
 
 fun main(args: Array<String>) {
     Thread {
-        val processEngine = ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
+        RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(
+                ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
                 .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
                 .setJdbcUrl("jdbc:h2:mem:my-own-db;DB_CLOSE_DELAY=1000")
                 .setJobExecutorActivate(true)
                 .buildProcessEngine()
+        )
 
-        val runtimeContainerDelegate = RuntimeContainerDelegate.INSTANCE.get()
-        runtimeContainerDelegate.registerProcessEngine(processEngine)
+        ExampleProcessApplication().deploy();
 
-        val processApplication = ExampleProcessApplication();
-
-        processApplication.deploy();
-
-        processEngine.getRuntimeService().startProcessInstanceByKey("Process_13nmxyw");
+        BpmPlatform.getDefaultProcessEngine().runtimeService.startProcessInstanceByKey("Process_13nmxyw");
 
     }.start()
 
