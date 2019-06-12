@@ -11,6 +11,7 @@ import org.jooby.json.Gzon
 
 
 class JoobyCamundaApplication : Kooby({
+
     use(Gzon())
 
     onStart {
@@ -30,6 +31,7 @@ class JoobyCamundaApplication : Kooby({
     }
 
     get("/task") { BpmPlatform.getDefaultProcessEngine().taskService.createTaskQuery().list() }
+
 })
 
 fun main(args: Array<String>) {

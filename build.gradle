@@ -55,6 +55,8 @@ dependencies {
 
     compile "org.camunda.bpm:camunda-engine:$camundaVersion"
     compile "com.h2database:h2:1.4.199"
+    compile "org.camunda.spin:camunda-spin-core:1.6.7"
+
 
     compile 'org.jooby:jooby-gson:1.6.2'
 

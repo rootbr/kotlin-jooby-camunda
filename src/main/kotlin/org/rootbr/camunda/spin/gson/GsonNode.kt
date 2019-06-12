@@ -1,0 +1,393 @@
+
+package org.rootbr.camunda.spin.gson
+
+import org.camunda.commons.utils.EnsureUtil.ensureNotNull
+
+
+import com.google.gson.*
+import jdk.vm.ci.meta.JavaType
+import org.camunda.spin.DataFormats
+import org.camunda.spin.Spin
+import java.io.StringWriter
+import java.io.Writer
+import java.util.ArrayList
+import org.camunda.spin.SpinList
+import org.camunda.spin.impl.SpinListImpl
+import org.camunda.spin.json.SpinJsonDataFormatException
+import org.camunda.spin.json.SpinJsonException
+import org.camunda.spin.json.SpinJsonNode
+import org.camunda.spin.json.SpinJsonPathQuery
+import java.nio.file.InvalidPathException
+
+class GsonNode(protected val jsonNode: JsonElement, protected val gson : Gson = Gson()) : SpinJsonNode() {
+
+    override fun getDataFormatName() = DataFormats.JSON_DATAFORMAT_NAME
+
+    override fun unwrap(): JsonElement {
+        return jsonNode
+    }
+
+    override fun toString(): String {
+        val writer = StringWriter()
+        writeToWriter(writer)
+        return writer.toString()
+    }
+
+    override fun writeToWriter(writer: Writer) = gson.toJson(jsonNode, writer)
+
+
+    /**
+     * fetch correct array index if index is less than 0
+     *
+     * ArrayNode will convert all negative integers into 0...
+     *
+     * @param index wanted index
+     * @return [Integer] new index
+     */
+    protected fun getCorrectIndex(index: Int): Int {
+        jsonNode as JsonArray
+        val size = jsonNode.size()
+        var newIndex = index
+
+        // reverse walking through the array
+        if (index < 0) {
+            newIndex = size + index
+        }
+
+        // the negative index would be greater than the size a second time!
+        if (newIndex < 0) {
+            throw LOG.indexOutOfBounds(index, size)
+        }
+
+        // the index is greater as the actual size
+        if (index > size) {
+            throw LOG.indexOutOfBounds(index, size)
+        }
+        return newIndex
+    }
+
+    override fun indexOf(searchObject: Any): Int? {
+        ensureNotNull("searchObject", searchObject)
+        if (this.isArray!!) {
+            var i: Int? = 0
+            val node = gson.toJsonTree(searchObject)
+            val nodeIterator = jsonNode.elements()
+            while (nodeIterator.hasNext()) {
+                val n = nodeIterator.next()
+                if (n.equals(node)) {
+                    return i
+                }
+                i++
+            }
+
+            // when searchObject is not found
+            throw LOG.unableToFindProperty(node.asText())
+        } else {
+            throw LOG.unableToGetIndex(jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun lastIndexOf(searchObject: Any): Int? {
+        ensureNotNull("searchObject", searchObject)
+        if (this.isArray!!) {
+            var i: Int? = 0
+            var j: Int? = -1
+            val node = gson.toJsonTree(searchObject)
+            val nodeIterator = jsonNode.elements()
+            while (nodeIterator.hasNext()) {
+                val n = nodeIterator.next()
+                if (n.equals(node)) {
+                    j = i
+                }
+                i++
+            }
+
+            // when searchObject is not found
+            if (j == -1) {
+                throw LOG.unableToFindProperty(node.getNodeType().name())
+            }
+
+            return j
+        } else {
+            throw LOG.unableToGetIndex(jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun isObject(): Boolean {
+        return jsonNode.isJsonObject
+    }
+
+    override fun hasProp(name: String): Boolean {
+        jsonNode as JsonObject
+        return jsonNode.has(name)
+    }
+
+    override fun prop(name: String): SpinJsonNode {
+        ensureNotNull("name", name)
+        jsonNode as JsonObject
+        if (jsonNode.has(name)) {
+            val property = jsonNode.get(name)
+            return Spin.S(property)
+        } else {
+            throw LOG.unableToFindProperty(name)
+        }
+    }
+
+    override fun prop(name: String, newProperty: String?): SpinJsonNode {
+        jsonNode as JsonObject
+        jsonNode.addProperty(name, newProperty)
+        return this
+    }
+
+    override fun prop(name: String, newProperty: Number?): SpinJsonNode {
+        jsonNode as JsonObject
+        jsonNode.addProperty(name, newProperty)
+        return this
+    }
+
+    override fun prop(name: String, newProperty: Int): SpinJsonNode {
+        return prop(name, newProperty as? Number)
+    }
+
+    override fun prop(name: String, newProperty: Float): SpinJsonNode {
+        return prop(name, newProperty as? Number)
+    }
+
+    override fun prop(name: String, newProperty: Long): SpinJsonNode {
+        return prop(name, newProperty as? Number)
+    }
+
+    override fun prop(name: String, newProperty: Boolean?): SpinJsonNode {
+        jsonNode as JsonObject
+        jsonNode.addProperty(name, newProperty)
+        return this
+    }
+
+    override fun prop(name: String, newProperty: List<Any>): SpinJsonNode {
+        jsonNode as JsonObject
+        jsonNode.add(name, gson.toJsonTree(newProperty))
+        return this
+    }
+
+    override fun prop(name: String, newProperty: Map<String, Any>): SpinJsonNode {
+        jsonNode as JsonObject
+        jsonNode.add(name, gson.toJsonTree(newProperty))
+        return this
+    }
+
+    override fun prop(name: String, newProperty: SpinJsonNode?): SpinJsonNode {
+        jsonNode as JsonObject
+        jsonNode.add(name, newProperty?.unwrap() as JsonElement)
+        return this
+    }
+
+    override fun deleteProp(name: String): SpinJsonNode {
+        ensureNotNull("name", name)
+        jsonNode as JsonObject
+        if (jsonNode.has(name)) {
+            jsonNode.remove(name)
+            return this
+        } else {
+            throw LOG.unableToFindProperty(name)
+        }
+    }
+
+    override fun deleteProp(names: List<String>): SpinJsonNode {
+        ensureNotNull("names", names)
+        names.forEach { deleteProp(it) }
+        return this
+    }
+
+    override fun append(property: Any): SpinJsonNode {
+        ensureNotNull("property", property)
+        if (jsonNode.isJsonArray) {
+            jsonNode as JsonArray
+            jsonNode.add(gson.toJsonTree(property))
+            return this
+        } else {
+            throw LOG.unableToModifyNode(jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun insertAt(index: Int, property: Any): SpinJsonNode {
+        var index = index
+        ensureNotNull("property", property)
+
+        if (jsonNode.isJsonArray) {
+            index = getCorrectIndex(index)
+            jsonNode as JsonArray
+            jsonNode.set(index, gson.toJsonTree(property))
+            return this
+        } else {
+            throw LOG.unableToModifyNode(jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun insertBefore(searchObject: Any, insertObject: Any): SpinJsonNode {
+        ensureNotNull("searchObject", searchObject)
+        ensureNotNull("insertObject", insertObject)
+        if (this.isArray) {
+            val i = indexOf(searchObject)
+
+            return insertAt(i!!, insertObject)
+
+        } else {
+            throw LOG.unableToCreateNode(jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun insertAfter(searchObject: Any, insertObject: Any): SpinJsonNode {
+        ensureNotNull("searchObject", searchObject)
+        ensureNotNull("insertObject", insertObject)
+        if (this.isArray) {
+            val i = indexOf(searchObject)
+
+            return insertAt(i!! + 1, insertObject)
+
+        } else {
+            throw LOG.unableToCreateNode(jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun remove(property: Any): SpinJsonNode {
+        return removeAt(indexOf(property)!!)
+    }
+
+    override fun removeLast(property: Any): SpinJsonNode {
+        return removeAt(lastIndexOf(property)!!)
+    }
+
+    override fun removeAt(index: Int): SpinJsonNode {
+        if (jsonNode is JsonArray) {
+            jsonNode.remove(getCorrectIndex(index))
+            return this
+        } else {
+            throw LOG.unableToModifyNode(jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun isBoolean(): Boolean {
+        return jsonNode is JsonPrimitive && jsonNode.isBoolean
+    }
+
+    override fun boolValue(): Boolean? {
+        return if (isBoolean()) {
+            jsonNode.asBoolean
+        } else {
+            throw LOG.unableToParseValue(Boolean::class.java.simpleName, jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun isNumber(): Boolean {
+        return jsonNode is JsonPrimitive && jsonNode.isNumber()
+    }
+
+    override fun numberValue(): Number? {
+        return if (isNumber()) {
+            jsonNode.asNumber
+        } else {
+            throw LOG.unableToParseValue(Number::class.java.simpleName, jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun isString(): Boolean {
+        return jsonNode is JsonPrimitive && jsonNode.isString
+    }
+
+    override fun stringValue(): String {
+        return if (isString()) {
+            jsonNode.asString
+        } else {
+            throw LOG.unableToParseValue(String::class.java.simpleName, jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun isNull(): Boolean {
+        return jsonNode is JsonNull
+    }
+
+    override fun isValue(): Boolean {
+        return jsonNode.isJsonPrimitive
+    }
+
+    override fun value(): Any? {
+        if (jsonNode is JsonPrimitive) {
+            if (jsonNode.isBoolean) return jsonNode.asBoolean
+            if (jsonNode.isNumber) return jsonNode.asNumber
+            if (jsonNode.isString) return jsonNode.asString
+            if (jsonNode.isJsonNull) return null
+        }
+        throw LOG.unableToParseValue("String/Number/Boolean/Null", jsonNode.javaClass.simpleName)
+    }
+
+    override fun isArray(): Boolean {
+        return jsonNode.isJsonArray
+    }
+
+    override fun elements(): SpinList<SpinJsonNode> {
+        if (jsonNode is JsonArray) {
+            val iterator = jsonNode.iterator()
+            val list = SpinListImpl<SpinJsonNode>()
+            while (iterator.hasNext()) {
+                list.add(JSON(gson.toJsonTree(iterator.next())))
+            }
+
+            return list
+        } else {
+            throw LOG.unableToParseValue("SpinList", jsonNode.javaClass.simpleName)
+        }
+    }
+
+    override fun fieldNames(): List<String> {
+        jsonNode as JsonObject
+        if (jsonNode.isContainerNode()) {
+            val iterator = jsonNode.fieldNames()
+            val list = ArrayList<String>()
+            while (iterator.hasNext()) {
+                list.add(iterator.next())
+            }
+
+            return list
+        } else {
+            throw LOG.unableToParseValue("Array/Object", jsonNode.getNodeType())
+        }
+    }
+
+    override fun jsonPath(expression: String): SpinJsonPathQuery {
+        ensureNotNull("expression", expression)
+        try {
+            val query = JsonPath.compile(expression)
+            return JacksonJsonPathQuery(this, query, dataFormat)
+        } catch (pex: InvalidPathException) {
+            throw LOG.unableToCompileJsonPathExpression(expression, pex)
+        } catch (aex: IllegalArgumentException) {
+            throw LOG.unableToCompileJsonPathExpression(expression, aex)
+        }
+
+    }
+
+    /**
+     * Maps the json represented by this object to a java object of the given type.
+     *
+     * @throws SpinJsonException if the json representation cannot be mapped to the specified type
+     */
+    override fun <C> mapTo(type: Class<C>): C {
+        return gson.fromJson(jsonNode, type)
+    }
+
+    /**
+     * Maps the json represented by this object to a java object of the given type.
+     * Argument is to be supplied in Jackson's canonical type string format
+     * (see [JavaType.toCanonical]).
+     *
+     * @throws SpinJsonException if the json representation cannot be mapped to the specified type
+     * @throws SpinJsonDataFormatException if the parameter does not match a valid type
+     */
+    override fun <C> mapTo(type: String): C {
+        return  gson.fromJson(jsonNode, Class.forName(type)) as C
+    }
+
+    companion object {
+        private val LOG = GsonLogger.JSON_TREE_LOGGER
+    }
+}
