@@ -3,7 +3,6 @@ package org.rootbr.camunda.spin.gson
 
 import com.google.gson.*
 import com.jayway.jsonpath.JsonPath
-import jdk.vm.ci.meta.JavaType
 import org.camunda.commons.utils.EnsureUtil.ensureNotNull
 import org.camunda.spin.DataFormats
 import org.camunda.spin.Spin
@@ -19,16 +18,7 @@ import java.io.Writer
 import java.nio.file.InvalidPathException
 import java.util.*
 
-class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = GsonBuilder().create()) : SpinJsonNode() {
-    override fun prop(name: String, newProperty: Boolean): SpinJsonNode {
-        return this
-    }
-
-    override fun prop(name: String, newProperty: Boolean?): SpinJsonNode {
-        jsonNode as JsonObject
-        jsonNode.addProperty(name, newProperty)
-        return this
-    }
+class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = GsonBuilder().create()) : SpinJsonNodeAdapter() {
 
     override fun getDataFormatName() = DataFormats.JSON_DATAFORMAT_NAME
 
@@ -44,15 +34,6 @@ class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = G
 
     override fun writeToWriter(writer: Writer) = gson.toJson(jsonNode, writer)
 
-
-    /**
-     * fetch correct array index if index is less than 0
-     *
-     * ArrayNode will convert all negative integers into 0...
-     *
-     * @param index wanted index
-     * @return [Integer] new index
-     */
     protected fun getCorrectIndex(index: Int): Int {
         jsonNode as JsonArray
         val size = jsonNode.size()
@@ -147,6 +128,12 @@ class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = G
         return prop(name, newProperty as? Number)
     }
 
+    override fun prop(name: String, newProperty: Boolean?): SpinJsonNode {
+        jsonNode as JsonObject
+        jsonNode.addProperty(name, newProperty)
+        return this
+    }
+
     override fun prop(name: String, newProperty: List<Any>): SpinJsonNode {
         jsonNode as JsonObject
         jsonNode.add(name, gson.toJsonTree(newProperty))
@@ -194,12 +181,9 @@ class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = G
     }
 
     override fun insertAt(index: Int, property: Any): SpinJsonNode {
-        var index = index
         ensureNotNull("property", property)
-
-        if (jsonNode.isJsonArray) {
-            index = getCorrectIndex(index)
-            jsonNode as JsonArray
+        if (jsonNode is JsonArray) {
+            val index = getCorrectIndex(index)
             jsonNode.set(index, gson.toJsonTree(property))
             return this
         } else {
@@ -212,9 +196,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = G
         ensureNotNull("insertObject", insertObject)
         if (this.isArray) {
             val i = indexOf(searchObject)
-
             return insertAt(i!!, insertObject)
-
         } else {
             throw LOG.unableToCreateNode(jsonNode.javaClass.simpleName)
         }
@@ -225,9 +207,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = G
         ensureNotNull("insertObject", insertObject)
         if (this.isArray) {
             val i = indexOf(searchObject)
-
             return insertAt(i!! + 1, insertObject)
-
         } else {
             throw LOG.unableToCreateNode(jsonNode.javaClass.simpleName)
         }
@@ -305,7 +285,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = G
     }
 
     override fun isArray(): Boolean {
-        return jsonNode.isJsonArray
+        return jsonNode is JsonArray
     }
 
     override fun elements(): SpinList<SpinJsonNode> {
@@ -313,9 +293,8 @@ class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = G
             val iterator = jsonNode.iterator()
             val list = SpinListImpl<SpinJsonNode>()
             while (iterator.hasNext()) {
-                list.add(JSON(gson.toJsonTree(iterator.next())))
+                list.add(GsonNode(gson.toJsonTree(iterator.next())))
             }
-
             return list
         } else {
             throw LOG.unableToParseValue("SpinList", jsonNode.javaClass.simpleName)
