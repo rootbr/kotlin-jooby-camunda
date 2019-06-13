@@ -28,7 +28,7 @@ class JoobyCamundaApplication : Kooby({
             setJobExecutorActivate(true)
         }.buildProcessEngine()
         RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngine)
-        ExampleProcessApplication().deploy();
+        ExampleProcessApplication().deploy()
     }
 
     get {
