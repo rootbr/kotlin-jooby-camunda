@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.type.TypeFactory
+import com.jayway.jsonpath.internal.filter.ValueNode
+import jdk.vm.ci.meta.JavaType
 import java.io.IOException
 import org.camunda.spin.impl.json.jackson.JacksonJsonLogger
 import org.camunda.spin.spi.DataFormatMapper
@@ -48,7 +50,7 @@ class GsonDataFormatMapper(protected var format: GsonDataFormat) : DataFormatMap
     }
 
     fun <C> mapInternalToJava(parameter: Any, type: JavaType): C {
-        val jsonNode = parameter as JsonNode
+        val jsonNode = parameter as ValueNode.JsonNode
         val mapper = format.objectMapper
         try {
             return mapper.readValue(mapper.treeAsTokens(jsonNode), type)

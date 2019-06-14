@@ -12,19 +12,17 @@ import org.camunda.spin.json.SpinJsonDataFormatException
 import org.camunda.spin.json.SpinJsonException
 import org.camunda.spin.json.SpinJsonNode
 import org.camunda.spin.json.SpinJsonPathQuery
+import org.rootbr.camunda.spin.gson.format.GsonDataFormat
 import org.rootbr.camunda.spin.gson.query.GsonPathQuery
 import java.io.StringWriter
 import java.io.Writer
 import java.nio.file.InvalidPathException
 import java.util.*
 
-class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = GsonBuilder().create()) : SpinJsonNodeAdapter() {
+class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: GsonDataFormat) : SpinJsonNodeAdapter() {
 
-    override fun getDataFormatName() = DataFormats.JSON_DATAFORMAT_NAME
-
-    override fun unwrap(): JsonElement {
-        return jsonNode
-    }
+    override fun getDataFormatName() = dataFormat.name
+    override fun unwrap(): JsonElement = jsonNode
 
     override fun toString(): String {
         val writer = StringWriter()
@@ -32,7 +30,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val gson: Gson = G
         return writer.toString()
     }
 
-    override fun writeToWriter(writer: Writer) = gson.toJson(jsonNode, writer)
+    override fun writeToWriter(writer: Writer) = dataFormat.toJson(jsonNode, writer)
 
     protected fun getCorrectIndex(index: Int): Int {
         jsonNode as JsonArray
