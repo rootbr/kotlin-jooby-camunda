@@ -51,6 +51,17 @@ class JoobyCamundaApplication : Kooby({
         )
     }
 
+    post("/engine-rest/deployment/create") {
+        //TODO
+    }.consumes("json")
+
+    post("/engine-rest/message/{messageName}") { request ->
+        val messageName = request.param("messageName").value()
+        val businessKey = request.param("businessKey").value()
+        val body = request.body(String::class.java)
+        BpmPlatform.getDefaultProcessEngine().runtimeService.correlateMessage(messageName, businessKey, mapOf(messageName to JSON(body)))
+    }.consumes("json").produces("json")
+
 
 })
 

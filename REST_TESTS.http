@@ -1,0 +1,13 @@
+POST http://localhost:8080/engine-rest/message/START?businessKey=1
+Content-Type: application/json
+
+{"var":"val"}
+
+###
+
+POST http://localhost:8080/engine-rest/message/CANCEL?businessKey=1
+Content-Type: application/json
+
+{"var2":"val2"}
+
+###
