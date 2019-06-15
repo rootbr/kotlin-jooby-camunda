@@ -2,3 +2,9 @@
 
 very fast, veri small
 
+h2 console:
+url: jdbc:h2:tcp://localhost/~/test
+user: sa
+password:
+
+

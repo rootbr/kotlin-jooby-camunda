@@ -11,12 +11,9 @@ import org.camunda.spin.Spin.JSON
 import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin
 import org.jooby.Jooby.run
 import org.jooby.Kooby
-import org.jooby.json.Gzon
 
 data class Dto(val testString: String)
 class JoobyCamundaApplication : Kooby({
-
-    use(Gzon())
 
     onStart {
         val processEngine = (ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
@@ -24,22 +21,37 @@ class JoobyCamundaApplication : Kooby({
             processEnginePlugins.add(SpinProcessEnginePlugin())
             defaultSerializationFormat = Variables.SerializationDataFormats.JSON.name
             databaseSchemaUpdate = ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE
-            jdbcUrl = "jdbc:h2:mem:my-own-db;DB_CLOSE_DELAY=1000"
+            jdbcUrl = "jdbc:h2:tcp://localhost/~/test;DB_CLOSE_DELAY=1000"
             setJobExecutorActivate(true)
         }.buildProcessEngine()
         RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngine)
         ExampleProcessApplication().deploy()
+        val runtimeService = BpmPlatform.getDefaultProcessEngine().runtimeService
+        val processInstance = runtimeService.startProcessInstanceByKey("Process_13nmxyw")
+
+
+        val json = JSON("{\"val\":\"var\"}")
+        val taskService = BpmPlatform.getDefaultProcessEngine().taskService
+        val task = taskService.createTaskQuery().singleResult()
+        taskService.setVariable(task.id, "anyVariable", json)
     }
 
     get {
-        val runtimeService = BpmPlatform.getDefaultProcessEngine().runtimeService
-        val processInstance = runtimeService.startProcessInstanceByKey("Process_13nmxyw")
-        runtimeService.setVariable(processInstance.processInstanceId, "anyVariable", JSON("{\"val\":\"var\"}"))
-        runtimeService.getVariable(processInstance.processInstanceId, "anyVariable")
-//        "Process Engine: ${BpmPlatform.getDefaultProcessEngine().name}"
+        val taskService = BpmPlatform.getDefaultProcessEngine().taskService
+        val task = taskService.createTaskQuery().singleResult()
+        taskService.getVariable(task.id, "anyVariable")
     }
 
     get("/task") { BpmPlatform.getDefaultProcessEngine().taskService.createTaskQuery().list() }
+
+    get("/task/{id}/{variableName}") { req ->
+        BpmPlatform.getDefaultProcessEngine()
+                .taskService.getVariable(
+                req.param("id").value(),
+                req.param("variableName").value()
+        )
+    }
+
 
 })
 

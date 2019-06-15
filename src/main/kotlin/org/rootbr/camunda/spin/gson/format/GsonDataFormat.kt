@@ -34,7 +34,8 @@ class GsonDataFormat
     }
 
     override fun createWrapperInstance(parameter: Any): SpinJsonNode {
-        return GsonNode(parameter as JsonElement, this)
+        val gsonNode = GsonNode(createGsonNode(parameter), this)
+        return gsonNode
     }
 
     override fun getMapper(): GsonDataFormatMapper {

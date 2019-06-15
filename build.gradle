@@ -60,10 +60,6 @@ dependencies {
     compile "org.camunda.spin:camunda-spin-core:1.6.7"
     compile "com.jayway.jsonpath:json-path:2.4.0"
 
-
-    compile 'org.jooby:jooby-gson:1.6.2'
-
-
     testCompile "org.jetbrains.spek:spek-api:$spekVersion"
     testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$spekVersion"
     testCompile "org.junit.platform:junit-platform-launcher:$junitPlatformVersion"
