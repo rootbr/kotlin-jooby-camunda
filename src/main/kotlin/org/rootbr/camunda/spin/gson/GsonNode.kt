@@ -95,7 +95,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
         jsonNode as JsonObject
         if (jsonNode.has(name)) {
             val property = jsonNode.get(name)
-            return Spin.S(property)
+            return dataFormat.createWrapperInstance(property)
         } else {
             throw LOG.unableToFindProperty(name)
         }

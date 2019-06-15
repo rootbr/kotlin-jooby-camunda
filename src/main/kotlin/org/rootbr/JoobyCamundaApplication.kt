@@ -11,6 +11,7 @@ import org.camunda.spin.Spin.JSON
 import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin
 import org.jooby.Jooby.run
 import org.jooby.Kooby
+import org.rootbr.camunda.spin.gson.GsonNode
 
 data class Dto(val testString: String)
 class JoobyCamundaApplication : Kooby({
@@ -36,7 +37,8 @@ class JoobyCamundaApplication : Kooby({
         val task = taskService.createTaskQuery().list().first()
 
         taskService.setVariable(task.id, "jsonVariable5", json)
-        taskService.getVariable(task.id, "jsonVariable4")
+        val variable = taskService.getVariable(task.id, "jsonVariable4") as GsonNode
+        variable.prop("val").value()
     }
 
     get("/task") { BpmPlatform.getDefaultProcessEngine().taskService.createTaskQuery().list() }
