@@ -3,11 +3,7 @@ package org.rootbr.camunda.spin.gson
 import com.google.gson.JsonElement
 import org.camunda.commons.logging.BaseLogger
 import org.camunda.spin.impl.logging.SpinLogger
-import org.camunda.spin.json.SpinJsonDataFormatException
-import org.camunda.spin.json.SpinJsonException
-import org.camunda.spin.json.SpinJsonNode
-import org.camunda.spin.json.SpinJsonPathException
-import org.camunda.spin.json.SpinJsonPropertyException
+import org.camunda.spin.json.*
 
 
 class GsonLogger : SpinLogger() {

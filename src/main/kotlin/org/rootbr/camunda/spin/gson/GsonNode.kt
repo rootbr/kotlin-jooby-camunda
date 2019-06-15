@@ -4,7 +4,6 @@ package org.rootbr.camunda.spin.gson
 import com.google.gson.*
 import com.jayway.jsonpath.JsonPath
 import org.camunda.commons.utils.EnsureUtil.ensureNotNull
-import org.camunda.spin.DataFormats
 import org.camunda.spin.Spin
 import org.camunda.spin.SpinList
 import org.camunda.spin.impl.SpinListImpl
@@ -30,7 +29,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
         return writer.toString()
     }
 
-    override fun writeToWriter(writer: Writer) = dataFormat.toJson(jsonNode, writer)
+    override fun writeToWriter(writer: Writer) = dataFormat.gson.toJson(jsonNode, writer)
 
     protected fun getCorrectIndex(index: Int): Int {
         jsonNode as JsonArray
@@ -57,7 +56,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
     override fun indexOf(searchObject: Any): Int? {
         ensureNotNull("searchObject", searchObject)
         if (jsonNode is JsonArray) {
-            val node = gson.toJsonTree(searchObject)
+            val node = dataFormat.createGsonNode(searchObject)
             val i = jsonNode.indexOf(node)
             // when searchObject is not found
             if (i == -1) throw LOG.unableToFindProperty(node.toString())
@@ -70,7 +69,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
     override fun lastIndexOf(searchObject: Any): Int? {
         ensureNotNull("searchObject", searchObject)
         if (jsonNode is JsonArray) {
-            val node = gson.toJsonTree(searchObject)
+            val node = dataFormat.createGsonNode(searchObject)
             val i = jsonNode.lastIndexOf(node)
             // when searchObject is not found
             if (i == -1) {
@@ -134,13 +133,13 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
 
     override fun prop(name: String, newProperty: List<Any>): SpinJsonNode {
         jsonNode as JsonObject
-        jsonNode.add(name, gson.toJsonTree(newProperty))
+        jsonNode.add(name, dataFormat.createGsonNode(newProperty))
         return this
     }
 
     override fun prop(name: String, newProperty: Map<String, Any>): SpinJsonNode {
         jsonNode as JsonObject
-        jsonNode.add(name, gson.toJsonTree(newProperty))
+        jsonNode.add(name, dataFormat.createGsonNode(newProperty))
         return this
     }
 
@@ -171,7 +170,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
         ensureNotNull("property", property)
         if (jsonNode.isJsonArray) {
             jsonNode as JsonArray
-            jsonNode.add(gson.toJsonTree(property))
+            jsonNode.add(dataFormat.createGsonNode(property))
             return this
         } else {
             throw LOG.unableToModifyNode(jsonNode.javaClass.simpleName)
@@ -182,7 +181,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
         ensureNotNull("property", property)
         if (jsonNode is JsonArray) {
             val index = getCorrectIndex(index)
-            jsonNode.set(index, gson.toJsonTree(property))
+            jsonNode.set(index, dataFormat.createGsonNode(property))
             return this
         } else {
             throw LOG.unableToModifyNode(jsonNode.javaClass.simpleName)
@@ -233,7 +232,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
     }
 
     override fun boolValue(): Boolean? {
-        return if (isBoolean()) {
+        return if (isBoolean) {
             jsonNode.asBoolean
         } else {
             throw LOG.unableToParseValue(Boolean::class.java.simpleName, jsonNode.javaClass.simpleName)
@@ -241,11 +240,11 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
     }
 
     override fun isNumber(): Boolean {
-        return jsonNode is JsonPrimitive && jsonNode.isNumber()
+        return jsonNode is JsonPrimitive && jsonNode.isNumber
     }
 
     override fun numberValue(): Number? {
-        return if (isNumber()) {
+        return if (isNumber) {
             jsonNode.asNumber
         } else {
             throw LOG.unableToParseValue(Number::class.java.simpleName, jsonNode.javaClass.simpleName)
@@ -257,7 +256,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
     }
 
     override fun stringValue(): String {
-        return if (isString()) {
+        return if (isString) {
             jsonNode.asString
         } else {
             throw LOG.unableToParseValue(String::class.java.simpleName, jsonNode.javaClass.simpleName)
@@ -291,7 +290,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
             val iterator = jsonNode.iterator()
             val list = SpinListImpl<SpinJsonNode>()
             while (iterator.hasNext()) {
-                list.add(GsonNode(gson.toJsonTree(iterator.next())))
+                list.add(dataFormat.createWrapperInstance(iterator.next()))
             }
             return list
         } else {
@@ -312,7 +311,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
         ensureNotNull("expression", expression)
         try {
             val query = JsonPath.compile(expression)
-            return GsonPathQuery(this, query, gson)
+            return GsonPathQuery(this, query, dataFormat.gson)
         } catch (pex: InvalidPathException) {
             throw LOG.unableToCompileJsonPathExpression(expression, pex)
         } catch (aex: IllegalArgumentException) {
@@ -327,7 +326,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
      * @throws SpinJsonException if the json representation cannot be mapped to the specified type
      */
     override fun <C> mapTo(type: Class<C>): C {
-        return gson.fromJson(jsonNode, type)
+        return dataFormat.gson.fromJson(jsonNode, type)
     }
 
     /**
@@ -339,7 +338,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
      * @throws SpinJsonDataFormatException if the parameter does not match a valid type
      */
     override fun <C> mapTo(type: String): C {
-        return gson.fromJson(jsonNode, Class.forName(type)) as C
+        return dataFormat.gson.fromJson(jsonNode, Class.forName(type)) as C
     }
 
     companion object {

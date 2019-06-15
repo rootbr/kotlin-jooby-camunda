@@ -33,7 +33,7 @@ class GsonPathQuery(protected val spinJsonNode: SpinJsonNode, protected val quer
 
     override fun elementList(): SpinList<SpinJsonNode> {
         val node = element() as GsonNode
-        return if (node.isArray()) {
+        return if (node.isArray) {
             node.elements()
         } else {
             throw LOG.unableToParseValue("SpinList", node.javaClass.simpleName)
@@ -42,7 +42,7 @@ class GsonPathQuery(protected val spinJsonNode: SpinJsonNode, protected val quer
 
     override fun stringValue(): String {
         val node = element() as GsonNode
-        return if (node.isString()) {
+        return if (node.isString) {
             node.stringValue()
         } else {
             throw LOG.unableToParseValue(String::class.java.simpleName, node.javaClass.simpleName)
@@ -51,7 +51,7 @@ class GsonPathQuery(protected val spinJsonNode: SpinJsonNode, protected val quer
 
     override fun numberValue(): Number? {
         val node = element() as GsonNode
-        return if (node.isNumber()) {
+        return if (node.isNumber) {
             node.numberValue()
         } else {
             throw LOG.unableToParseValue(Number::class.java.simpleName, node.javaClass.simpleName)
@@ -60,7 +60,7 @@ class GsonPathQuery(protected val spinJsonNode: SpinJsonNode, protected val quer
 
     override fun boolValue(): Boolean? {
         val node = element() as GsonNode
-        return if (node.isBoolean()) {
+        return if (node.isBoolean) {
             node.boolValue()
         } else {
             throw LOG.unableToParseValue(Boolean::class.java.simpleName, node.javaClass.simpleName)
