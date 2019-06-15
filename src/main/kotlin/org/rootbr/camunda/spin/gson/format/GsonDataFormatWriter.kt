@@ -8,7 +8,6 @@ import java.io.Writer
 
 class GsonDataFormatWriter(protected var dataFormat: GsonDataFormat) : DataFormatWriter {
     private val LOG = GsonLogger.JSON_TREE_LOGGER
-
     override fun writeToWriter(writer: Writer, input: Any) {
         try {
             dataFormat.gson.toJson(input as JsonElement, writer)
