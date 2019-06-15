@@ -1,4 +1,4 @@
-= Kotlin Jooby Camunda
+= Kotlin Jooby Camunda + spin-gson
 
 very fast, veri small
 
