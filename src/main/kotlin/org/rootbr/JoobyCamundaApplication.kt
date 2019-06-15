@@ -5,31 +5,51 @@ import org.camunda.bpm.application.ProcessApplication
 import org.camunda.bpm.application.impl.EmbeddedProcessApplication
 import org.camunda.bpm.container.RuntimeContainerDelegate
 import org.camunda.bpm.engine.ProcessEngineConfiguration
+import org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration
+import org.camunda.bpm.engine.variable.Variables
+import org.camunda.spin.Spin.JSON
+import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin
 import org.jooby.Jooby.run
 import org.jooby.Kooby
-import org.jooby.json.Gzon
 
-
+data class Dto(val testString: String)
 class JoobyCamundaApplication : Kooby({
-    use(Gzon())
 
     onStart {
-        RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(
-                ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
-                        .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE)
-                        .setJdbcUrl("jdbc:h2:mem:my-own-db;DB_CLOSE_DELAY=1000")
-                        .setJobExecutorActivate(true)
-                        .buildProcessEngine()
-        )
-        ExampleProcessApplication().deploy();
+        val processEngine = (ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration()
+                as StandaloneInMemProcessEngineConfiguration).apply {
+            processEnginePlugins.add(SpinProcessEnginePlugin())
+            defaultSerializationFormat = Variables.SerializationDataFormats.JSON.name
+            databaseSchemaUpdate = ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE
+            jdbcUrl = "jdbc:h2:tcp://localhost/~/test;DB_CLOSE_DELAY=1000"
+            setJobExecutorActivate(true)
+        }.buildProcessEngine()
+        RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngine)
+        ExampleProcessApplication().deploy()
+        val runtimeService = BpmPlatform.getDefaultProcessEngine().runtimeService
+        val processInstance = runtimeService.startProcessInstanceByKey("Process_13nmxyw")
     }
 
     get {
-        BpmPlatform.getDefaultProcessEngine().runtimeService.startProcessInstanceByKey("Process_13nmxyw");
-        "Process Engine: ${BpmPlatform.getDefaultProcessEngine().name}"
+        val json = JSON("{\"val\":\"var\"}")
+        val taskService = BpmPlatform.getDefaultProcessEngine().taskService
+        val task = taskService.createTaskQuery().list().first()
+
+        taskService.setVariable(task.id, "jsonVariable5", json)
+        taskService.getVariable(task.id, "jsonVariable4")
     }
 
     get("/task") { BpmPlatform.getDefaultProcessEngine().taskService.createTaskQuery().list() }
+
+    get("/task/{id}/{variableName}") { req ->
+        BpmPlatform.getDefaultProcessEngine()
+                .taskService.getVariable(
+                req.param("id").value(),
+                req.param("variableName").value()
+        )
+    }
+
+
 })
 
 fun main(args: Array<String>) {
