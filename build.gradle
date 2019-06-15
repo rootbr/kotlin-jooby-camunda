@@ -47,6 +47,17 @@ dependencyManagement {
     }
 }
 
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Implementation-Version': version,
+                'Main-Class': 'org.rootbr.JoobyCamundaApplicationKt'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
 dependencies {
     compile "org.jooby:jooby-lang-kotlin"
     compile "org.jooby:jooby-netty"
