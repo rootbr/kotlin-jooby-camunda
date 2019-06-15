@@ -28,18 +28,15 @@ class JoobyCamundaApplication : Kooby({
         ExampleProcessApplication().deploy()
         val runtimeService = BpmPlatform.getDefaultProcessEngine().runtimeService
         val processInstance = runtimeService.startProcessInstanceByKey("Process_13nmxyw")
-
-
-        val json = JSON("{\"val\":\"var\"}")
-        val taskService = BpmPlatform.getDefaultProcessEngine().taskService
-        val task = taskService.createTaskQuery().singleResult()
-        taskService.setVariable(task.id, "anyVariable", json)
     }
 
     get {
+        val json = JSON("{\"val\":\"var\"}")
         val taskService = BpmPlatform.getDefaultProcessEngine().taskService
-        val task = taskService.createTaskQuery().singleResult()
-        taskService.getVariable(task.id, "anyVariable")
+        val task = taskService.createTaskQuery().list().first()
+
+        taskService.setVariable(task.id, "jsonVariable5", json)
+        taskService.getVariable(task.id, "jsonVariable4")
     }
 
     get("/task") { BpmPlatform.getDefaultProcessEngine().taskService.createTaskQuery().list() }

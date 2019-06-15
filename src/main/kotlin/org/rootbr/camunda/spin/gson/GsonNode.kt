@@ -29,7 +29,7 @@ class GsonNode(protected val jsonNode: JsonElement, protected val dataFormat: Gs
         return writer.toString()
     }
 
-    override fun writeToWriter(writer: Writer) = dataFormat.gson.toJson(jsonNode, writer)
+    override fun writeToWriter(writer: Writer) = dataFormat.writer.writeToWriter(writer, jsonNode)
 
     protected fun getCorrectIndex(index: Int): Int {
         jsonNode as JsonArray
