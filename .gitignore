@@ -26,3 +26,5 @@ build
 .gradle
 *.iml
 !gradle-wrapper.jar
+node_modules
+dist
