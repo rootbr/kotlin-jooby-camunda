@@ -64,6 +64,11 @@ dependencies {
     compile "io.netty:netty-transport-native-epoll:${dependencyManagement.importedProperties['netty.version']}:${osdetector.classifier.contains('linux') ? 'linux-x86_64' : ''}"
     compile "io.netty:netty-tcnative-boringssl-static:${dependencyManagement.importedProperties['boringssl.version']}:${osdetector.classifier}"
 
+//    compile 'org.jooby:jooby-assets:1.6.2'
+    compile 'org.jooby:jooby-thymeleaf:1.6.2'
+//    compile 'org.jooby:jooby-assets-react:1.1.3'
+
+
     compile "org.camunda.bpm:camunda-engine:$camundaVersion"
     compile "com.h2database:h2:1.4.199"
 

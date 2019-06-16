@@ -11,6 +11,7 @@ import org.camunda.spin.Spin.JSON
 import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin
 import org.jooby.Jooby.run
 import org.jooby.Kooby
+import org.jooby.Results
 import org.rootbr.camunda.spin.gson.GsonNode
 
 data class Dto(val testString: String)
@@ -31,7 +32,13 @@ class JoobyCamundaApplication : Kooby({
         val processInstance = runtimeService.startProcessInstanceByKey("Process_13nmxyw")
     }
 
-    get {
+    use(Thl())
+
+    get("/") { req -> Results.html("index").put("model", null) }
+
+    assets("/**/*.js")
+
+    get("/api") {
         val json = JSON("{\"val\":\"var\"}")
         val taskService = BpmPlatform.getDefaultProcessEngine().taskService
         val task = taskService.createTaskQuery().list().first()
@@ -41,21 +48,11 @@ class JoobyCamundaApplication : Kooby({
         variable.prop("val").value()
     }
 
-    get("/task") { BpmPlatform.getDefaultProcessEngine().taskService.createTaskQuery().list() }
-
-    get("/task/{id}/{variableName}") { req ->
-        BpmPlatform.getDefaultProcessEngine()
-                .taskService.getVariable(
-                req.param("id").value(),
-                req.param("variableName").value()
-        )
-    }
-
     post("/engine-rest/deployment/create") {
         //TODO
     }.consumes("json")
 
-    post("/engine-rest/message/{messageName}") { request ->
+    post("/api/message/{messageName}") { request ->
         val messageName = request.param("messageName").value()
         val businessKey = request.param("businessKey").value()
         val body = request.body(String::class.java)
