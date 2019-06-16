@@ -14,6 +14,7 @@ import org.jooby.Kooby
 import org.jooby.Results
 import org.rootbr.camunda.spin.gson.GsonNode
 
+
 data class Dto(val testString: String)
 class JoobyCamundaApplication : Kooby({
 
@@ -32,11 +33,9 @@ class JoobyCamundaApplication : Kooby({
         val processInstance = runtimeService.startProcessInstanceByKey("Process_13nmxyw")
     }
 
-    use(Thl())
-
-    get("/") { req -> Results.html("index").put("model", null) }
-
     assets("/**/*.js")
+    assets("/index.html")
+    assets("/*.bpmn")
 
     get("/api") {
         val json = JSON("{\"val\":\"var\"}")

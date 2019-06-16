@@ -1,9 +1,60 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>react-bpmn example</title>
+
+    <!-- app dependency -->
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+
+    <!-- dependency for the UMD bundle -->
+    <script src="node_modules/bpmn-js/dist/bpmn-navigated-viewer.development.js"></script>
+
+    <!-- react-bpmn umd distribution -->
+    <script src="node_modules/react-bpmn/dist/react-bpmn.umd.js"></script>
+
+    <!-- Don't use this in production: -->
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+
+    <style>
+        .diagram-container {
+            height:  300px;
+        }
+
+        .react-bpmn-diagram-container {
+            width: 100%;
+            height:  100%;
+        }
+    </style>
+</head>
 <body>
-<div id="root"></div>
-<script type="text/javascript" src="/js/lib/react-dom.js"></script>
-<script type="text/javascript" src="/js/lib/react.js"></script>
-<script type="text/javascript" src="/js/index.js"></script>
+<div>
+    <h1>Display BPMN 2.0 Diagrams Using React</h1>
+    <div id="diagram" class="diagram-container"></div>
+</div>
+<script type="text/babel">
+
+    function onError(err) {
+        console.error('failed to render diagram', err);
+    }
+
+    function onLoading() {
+        console.log('loading diagram');
+    }
+
+    function onShown() {
+        console.log('diagram shown');
+    }
+
+    ReactDOM.render(
+        <ReactBpmn
+            url="/example-process.bpmn"
+            onLoading={ onLoading }
+            onShown={ onShown }
+            onError={ onError }
+        />,
+        document.querySelector('#diagram')
+    );
+</script>
 </body>
 </html>
