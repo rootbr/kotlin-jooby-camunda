@@ -28,3 +28,8 @@ user: sa
 password:
 
 
+* npm install
+* npm run bundle
+* npm start
+
+

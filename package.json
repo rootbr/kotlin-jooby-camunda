@@ -1,0 +1,27 @@
+{
+  "name": "vue-bpmn-viewer",
+  "main": "public/js/index.js",
+  "scripts": {
+    "bundle": "rollup -c",
+    "prepublishOnly": "npm run bundle",
+    "start": "serve"
+  },
+  "dependencies": {
+    "bpmn-js": "^3.2.3"
+  },
+  "module": "public/js/index.esm.js",
+  "keywords": [
+    "bpmn-js",
+    "bpmn",
+    "vue-js",
+    "vue"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "rollup": "^1.7.3",
+    "rollup-plugin-commonjs": "^9.2.2",
+    "rollup-plugin-vue": "^4.7.2",
+    "vue-template-compiler": "^2.6.10",
+    "serve": "^10.1.2"
+  }
+}

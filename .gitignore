@@ -28,3 +28,6 @@ build
 !gradle-wrapper.jar
 node_modules
 dist
+public/js/index.esm.js
+public/js/index.js
+public/js/vue-bpmn.umd.js
