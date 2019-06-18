@@ -1,60 +1,118 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>react-bpmn example</title>
+    <meta charset="UTF-8" />
+    <title>camunda-rootbr</title>
 
-    <!-- app dependency -->
-    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <!-- required modeler styles -->
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@4.0.0-beta.1/dist/assets/diagram-js.css">
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@4.0.0-beta.1/dist/assets/bpmn-font/css/bpmn.css">
 
-    <!-- dependency for the UMD bundle -->
-    <script src="node_modules/bpmn-js/dist/bpmn-navigated-viewer.development.js"></script>
+    <!-- modeler distro -->
+    <script src="https://unpkg.com/bpmn-js@4.0.0-beta.1/dist/bpmn-modeler.development.js"></script>
 
-    <!-- react-bpmn umd distribution -->
-    <script src="node_modules/react-bpmn/dist/react-bpmn.umd.js"></script>
+    <!-- needed for this example only -->
+    <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
 
-    <!-- Don't use this in production: -->
-    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
-
+    <!-- example styles -->
     <style>
-        .diagram-container {
-            height:  300px;
+        html, body, #canvas {
+            height: 100%;
+            padding: 0;
+            margin: 0;
         }
-
-        .react-bpmn-diagram-container {
-            width: 100%;
-            height:  100%;
+        .diagram-note {
+            background-color: rgba(66, 180, 21, 0.7);
+            color: White;
+            border-radius: 5px;
+            font-family: Arial;
+            font-size: 12px;
+            padding: 5px;
+            min-height: 16px;
+            width: 50px;
+            text-align: center;
+        }
+        .needs-discussion:not(.djs-connection) .djs-visual > :nth-child(1) {
+            stroke: rgba(66, 180, 21, 0.7) !important; /* color elements as red */
+        }
+        #save-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
         }
     </style>
 </head>
 <body>
-<div>
-    <h1>Display BPMN 2.0 Diagrams Using React</h1>
-    <div id="diagram" class="diagram-container"></div>
-</div>
-<script type="text/babel">
+<div id="canvas"></div>
 
-    function onError(err) {
-        console.error('failed to render diagram', err);
+<button id="save-button">print to console</button>
+
+<script>
+    var diagramUrl = 'process.bpmn';
+    // modeler instance
+    var bpmnModeler = new BpmnJS({
+        container: '#canvas',
+        keyboard: {
+            bindTo: window
+        }
+    });
+    /**
+     * Save diagram contents and print them to the console.
+     */
+    function exportDiagram() {
+        bpmnModeler.saveXML({ format: true }, function(err, xml) {
+            if (err) {
+                return console.error('could not save BPMN 2.0 diagram', err);
+            }
+            alert('Diagram exported. Check the developer tools!');
+            console.log('DIAGRAM', xml);
+        });
     }
-
-    function onLoading() {
-        console.log('loading diagram');
+    /**
+     * Open diagram in our modeler instance.
+     *
+     * @param {String} bpmnXML diagram to display
+     */
+    function openDiagram(bpmnXML) {
+        // import diagram
+        bpmnModeler.importXML(bpmnXML, function(err) {
+            if (err) {
+                return console.error('could not import BPMN 2.0 diagram', err);
+            }
+            // access modeler components
+            var canvas = bpmnModeler.get('canvas');
+            var overlays = bpmnModeler.get('overlays');
+            // zoom to fit full viewport
+            canvas.zoom('fit-viewport');
+            // attach an overlay to a node
+            overlays.add('SCAN_OK', 'note', {
+                position: {
+                    bottom: 0,
+                    right: 0
+                },
+                html: '<div class="diagram-note">Mixed up the labels?</div>'
+            });
+            // add marker
+            canvas.addMarker('SCAN_OK', 'needs-discussion');
+        });
     }
-
-    function onShown() {
-        console.log('diagram shown');
-    }
-
-    ReactDOM.render(
-        <ReactBpmn
-            url="/example-process.bpmn"
-            onLoading={ onLoading }
-            onShown={ onShown }
-            onError={ onError }
-        />,
-        document.querySelector('#diagram')
-    );
+    // load external diagram file via AJAX and open it
+    $.get(diagramUrl, openDiagram, 'text');
+    // wire save button
+    $('#save-button').click(exportDiagram);
 </script>
+<!--
+  Thanks for trying out our BPMN toolkit!
+  This example uses the pre-built distribution of the bpmn-js modeler.
+  Consider rolling your own distribution to have more flexibility
+  regarding which features to include.
+  Checkout our advanced examples section to learn more:
+  * https://github.com/bpmn-io/bpmn-js-examples#advanced
+  To get a bit broader overview over how bpmn-js works,
+  follow our walkthrough:
+  * https://bpmn.io/toolkit/bpmn-js/walkthrough/
+  Related starters:
+  * https://raw.githubusercontent.com/bpmn-io/bpmn-js-examples/starter/viewer.html
+-->
 </body>
 </html>

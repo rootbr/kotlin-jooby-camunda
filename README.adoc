@@ -1,8 +1,11 @@
-= Kotlin Jooby Camunda + spin-gson
+= Camunda rootbr
 
-very fast, veri small
+_kotlin, Jooby, Camunda, Custom Spin-Gson_
+
+*fast, small, simple*
 
 Концепция
+
 
 1. запускаем джарник с указанием пути до BPMN
 2. есть рест сервис на отправку сообщений процессу (имя сообщения + параметр бизнес-ключ + тело сообщения как json который сохраняется в переменную процесса по названию сообщения) + рест сервис на работу с external-task
@@ -15,6 +18,9 @@ very fast, veri small
 
 http://localhost:8080/h2/h2
 jdbc:h2:./camunda-h2-dbs/process-engine;MVCC=TRUE;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+
+java -jar .\h2-1.4.199.jar -baseDir ~/tmp/h2dbs
+jdbc:h2:tcp://localhost/~/tmp/h2dbs/camunda-h2-dbs/process-engine;MVCC=TRUE;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
 
 h2 console:
 url: jdbc:h2:tcp://localhost/~/test

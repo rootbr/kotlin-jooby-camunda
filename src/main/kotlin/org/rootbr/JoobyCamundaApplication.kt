@@ -12,6 +12,7 @@ import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin
 import org.jooby.Jooby.run
 import org.jooby.Kooby
 import org.jooby.Results
+import org.jooby.pebble.Pebble
 import org.rootbr.camunda.spin.gson.GsonNode
 
 
@@ -24,14 +25,19 @@ class JoobyCamundaApplication : Kooby({
             processEnginePlugins.add(SpinProcessEnginePlugin())
             defaultSerializationFormat = Variables.SerializationDataFormats.JSON.name
             databaseSchemaUpdate = ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE
-            jdbcUrl = "jdbc:h2:tcp://localhost/~/test;DB_CLOSE_DELAY=1000"
+//            jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=1000"
+            jdbcUrl = "jdbc:h2:tcp://localhost/~/tmp/h2dbs/camunda-h2-dbs/process-engine;MVCC=TRUE;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE"
             setJobExecutorActivate(true)
         }.buildProcessEngine()
         RuntimeContainerDelegate.INSTANCE.get().registerProcessEngine(processEngine)
-        ExampleProcessApplication().deploy()
+        org.rootbr.ProcessApplication().deploy()
         val runtimeService = BpmPlatform.getDefaultProcessEngine().runtimeService
         val processInstance = runtimeService.startProcessInstanceByKey("Process_13nmxyw")
     }
+
+    use(Pebble());
+
+    get("/") { _ -> Results.html("index")}
 
     assets("/**/*.js")
     assets("/index.html")
@@ -65,5 +71,5 @@ fun main(args: Array<String>) {
     run(::JoobyCamundaApplication, args)
 }
 
-@ProcessApplication(name = "example-process-application", deploymentDescriptors = ["processes.xml"])
-class ExampleProcessApplication : EmbeddedProcessApplication()
+@ProcessApplication(name = "process-application", deploymentDescriptors = ["processes.xml"])
+class ProcessApplication : EmbeddedProcessApplication()
