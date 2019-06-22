@@ -10,7 +10,8 @@
     "dev": "npm-run-all --parallel start watch"
   },
   "dependencies": {
-    "bpmn-js": "^3.2.3"
+    "bpmn-js": "^3.2.3",
+    "vue2-bootstrap-table2": "^1.2.1"
   },
   "module": "public/js/index.esm.js",
   "keywords": [

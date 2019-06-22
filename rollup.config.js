@@ -21,6 +21,15 @@ export default [
     plugins: pgl()
   },
   {
+    input: './src/main/javascript/table-processes.vue',
+    output: {
+      name: 'VueBootstrapTable',
+      file: `public/js/vue2-bootstrap-table2.umd.js`,
+      format: 'umd'
+    },
+    plugins: pgl()
+  },
+  {
     input: './src/main/javascript/index.vue',
     output: [
       { file: pkg.main, format: 'cjs' },

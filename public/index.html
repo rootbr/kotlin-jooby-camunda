@@ -11,6 +11,7 @@
 
     <!-- vue-bpmn umd distribution -->
     <script src="http://localhost:8080/js/vue-bpmn.umd.js"></script>
+    <script src="http://localhost:8080/js/vue2-bootstrap-table2.umd.js"></script>
 
     <style>
         .diagram-container {
@@ -31,6 +32,25 @@
     </div>
 
 </div>
+<div>
+    <h1>Processes</h1>
+
+    <div id="table">
+        <vue-bootstrap-table
+                :columns="columns"
+                :values="values"
+                :show-filter="true"
+                :show-column-picker="true"
+                :sortable="true"
+                :paginated="true"
+                :multi-column-sortable=true
+                :filter-case-sensitive=false
+
+        >
+        </vue-bootstrap-table>
+    </div>
+
+</div>
 <script>
     new Vue({
         el: '#app',
@@ -45,6 +65,55 @@
                 console.log('diagram shown');
             }
         }
+    });
+
+    new Vue({
+        el: '#table',
+        components: {
+            VueBootstrapTable: VueBootstrapTable
+        },
+        data: {
+            columns: [
+                {
+                    title:"id",
+                },
+                {
+                    title:"name",
+                    visible: true,
+                    editable: true,
+                },
+                {
+                    title:"age",
+                    visible: true,
+                    editable: true,
+                },
+                {
+                    title:"country",
+                    visible: true,
+                    editable: true,
+                }
+            ],
+            values: [
+                {
+                    "id": 1,
+                    "name": "John",
+                    "country": "UK",
+                    "age": 25,
+                },
+                {
+                    "id": 2,
+                    "name": "Mary",
+                    "country": "France",
+                    "age": 30,
+                },
+                {
+                    "id": 3,
+                    "name": "Ana",
+                    "country": "Portugal",
+                    "age": 20,
+                }
+            ]
+        },
     });
 </script>
 </body>
