@@ -73,11 +73,10 @@
                 let overlays = this.bpmnViewer.get('overlays');
                 for (var key in val) {
                     let element = val[key];
-                    console.log(key + ':' + element);
                     overlays.add(key, {
                         position: {
-                            bottom: 0,
-                            right: 0
+                            top: 5,
+                            right: 15
                         },
                         html: '<div class="success-message">' + val[key] + '</div>'
                     });
