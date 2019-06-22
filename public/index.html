@@ -7,10 +7,10 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 
     <!-- dependency for the UMD bundle -->
-    <script src="/js/bpmn-js/bpmn-navigated-viewer.development.js"></script>
+    <script src="http://localhost:8080/js/bpmn-js/bpmn-navigated-viewer.development.js"></script>
 
     <!-- vue-bpmn umd distribution -->
-    <script src="/js/vue-bpmn.umd.js"></script>
+    <script src="http://localhost:8080/js/vue-bpmn.umd.js"></script>
 
     <style>
         .diagram-container {
@@ -24,7 +24,7 @@
 
     <div class="diagram-container">
         <vue-bpmn
-                url="/process.bpmn"
+                url="http://localhost:8080/process.bpmn"
                 v-on:error="handleError"
                 v-on:shown="handleShown"
         ></vue-bpmn>

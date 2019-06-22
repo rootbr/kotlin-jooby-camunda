@@ -12,6 +12,7 @@ import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin
 import org.jooby.Jooby.run
 import org.jooby.Kooby
 import org.jooby.Results
+import org.jooby.handlers.CorsHandler
 import org.jooby.pebble.Pebble
 import org.rootbr.camunda.spin.gson.GsonNode
 
@@ -35,9 +36,10 @@ class JoobyCamundaApplication : Kooby({
         val processInstance = runtimeService.startProcessInstanceByKey("Process_13nmxyw")
     }
 
-    use(Pebble());
+    use(Pebble())
+    use("*", CorsHandler())
 
-    get("/") { _ -> Results.html("index")}
+    get("/") { _ -> Results.html("index") }
 
     assets("/**/*.js")
     assets("/index.html")
@@ -64,6 +66,15 @@ class JoobyCamundaApplication : Kooby({
         BpmPlatform.getDefaultProcessEngine().runtimeService.correlateMessage(messageName, businessKey, mapOf(messageName to JSON(body)))
     }.consumes("json").produces("json")
 
+    get("/api/activities") {
+        val taskService = BpmPlatform.getDefaultProcessEngine().taskService
+        val historyService = BpmPlatform.getDefaultProcessEngine().historyService
+        JSON(taskService.createTaskQuery().list().groupingBy { it.taskDefinitionKey }.eachCount()).toString()
+    }
+    get("/api/history-activities") {
+        val historyService = BpmPlatform.getDefaultProcessEngine().historyService
+        historyService.createHistoricActivityInstanceQuery().list();
+    }
 
 })
 
