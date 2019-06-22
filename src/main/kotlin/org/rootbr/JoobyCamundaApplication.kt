@@ -73,7 +73,7 @@ class JoobyCamundaApplication : Kooby({
     }
     get("/api/history-activities") {
         val historyService = BpmPlatform.getDefaultProcessEngine().historyService
-        historyService.createHistoricActivityInstanceQuery().list();
+        JSON(historyService.createHistoricActivityInstanceQuery().list().groupingBy { it.activityId }.eachCount()).toString()
     }
 
 })

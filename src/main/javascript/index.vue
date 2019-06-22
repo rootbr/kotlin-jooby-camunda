@@ -49,14 +49,10 @@
                         console.log(JSON.stringify(myJson));
                         self.activities = myJson
                     });
-
             });
-
             if (this.url) {
                 this.fetchDiagram(this.url);
             }
-
-
         },
         beforeDestroy: function () {
             this.bpmnViewer.destroy();
@@ -70,10 +66,8 @@
                 this.bpmnViewer.importXML(val);
             },
             activities: function (val) {
-                let overlays = this.bpmnViewer.get('overlays');
                 for (var key in val) {
-                    let element = val[key];
-                    overlays.add(key, {
+                    this.bpmnViewer.get('overlays').add(key, {
                         position: {
                             top: 5,
                             right: 15
@@ -108,8 +102,8 @@
     }
 
     .success-message {
-        color: red;
-        text-shadow: 0 0 black;
-        background-color: floralwhite;
+        color: green;
+        text-shadow: darkgreen;
+        background-color: #DCFECC;
     }
 </style>
